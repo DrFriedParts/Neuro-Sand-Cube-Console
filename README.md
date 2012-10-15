@@ -14,6 +14,7 @@ No security is desired or implemented. The intention is ease-of-use above all. T
 ## Primary Authors
 
 Theunis Kotze
+
 Jonathan Friedman, PhD
 
 ## Installation
