@@ -23,7 +23,7 @@ To run the web server, [nodejs](http://nodejs.org) needs to be installed.
 With nodejs installed, issue the following command in the directory where you cloned Neuro-Sand-Cube-Console to take care of all the remaining dependecies:  
 ```> npm install```
 
-If you are going to edit coffeescript code, you will need to install coffeescript:
+If you are going to edit coffeescript code, you will need to install coffeescript:  
 ```> npm install -g coffee-script```
 
 ## Usage
