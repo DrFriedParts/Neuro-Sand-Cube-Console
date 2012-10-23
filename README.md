@@ -23,11 +23,16 @@ To run the web server, [nodejs](http://nodejs.org) needs to be installed.
 With nodejs installed, issue the following command in the directory where you cloned Neuro-Sand-Cube-Console to take care of all the remaining dependecies:  
 ```> npm install```
 
+If you are going to edit coffeescript code, you will need to install coffeescript:
+```> npm install -g coffee-script```
+
 ## Usage
 
+If any changes have been made to server.coffee, compile it to javascript:  
 ```> coffee server.coffee```  
-```> node server [host] [port]```
 
+To run the web server:  
+```> node server [host] [port]```
 
 The above commands starts a web server, which connects to a Neuro-Sand-Cube server on ```host:port``` (default = ```localhost:12345```). The server will continuously attempt to connect, until a connection is made. 
 Once the server is up and running, clients on the network can connect to the webserver via http on port 8000.  For example, to connect to the server from the same machine, the user would enter ```http://locahost:8000``` into a web browser.  If the server is hosted on a computer with the domain name ```network-pc```, the user would enter ```http://network-pc:8000``` into the browser.
