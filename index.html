@@ -19,7 +19,7 @@
 	{
         height: 500px;
     }
-    h3 
+    h3, h4 
 	{
         text-align: center;
     }
@@ -133,8 +133,10 @@
 	var socket = io.connect(document.location.href);
 		socket.on('nsc', function (data) {
 			process(data);
-			present(data);
-			
+			present(data);		
+	});
+	socket.on('connection', function (data) {
+	   $("#connection").html(data.connected? "Connected" : "Disconnected");
 	});
     $(function() {
         $( "#accordion" ).accordion({
@@ -201,7 +203,7 @@
 
 <div id="accordion-resizer" class="ui-widget-content">
 	<div id="accordion">
-    <h3>Console</h3>
+    <h3>Log</h3>
     <div id="console">
         <p>
         
@@ -209,6 +211,7 @@
     </div>
     <h3>Stats</h3>
     <div id = "stats">
+	    <h4 id = "connection"> Disconnected </h4>
         <p>
         <table id="stats-table"><thead><tr><th>state</th><th>change_count</th><th>time</th><th>frame</th><th>value</th></tr></thead><tbody></tbody></table>
         </p>
