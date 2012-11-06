@@ -1,24 +1,59 @@
-###
-         _             _      _                  _           _                  _            _                   _             _                      _       _                  _               _                    _             _            _             _            _            _             _      
-        /\ \     _    /\ \   /\_\               /\ \        /\ \               / /\         / /\                /\ \     _    /\ \                  /\ \     /\_\               / /\            /\ \                /\ \           /\ \         /\ \     _    / /\         /\ \         _\ \          /\ \    
-       /  \ \   /\_\ /  \ \ / / /         _    /  \ \      /  \ \             / /  \       / /  \              /  \ \   /\_\ /  \ \____            /  \ \   / / /         _    / /  \          /  \ \              /  \ \         /  \ \       /  \ \   /\_\ / /  \       /  \ \       /\__ \        /  \ \   
-      / /\ \ \_/ / // /\ \ \\ \ \__      /\_\ / /\ \ \    / /\ \ \           / / /\ \__   / / /\ \            / /\ \ \_/ / // /\ \_____\          / /\ \ \  \ \ \__      /\_\ / / /\ \        / /\ \ \            / /\ \ \       / /\ \ \     / /\ \ \_/ / // / /\ \__   / /\ \ \     / /_ \_\      / /\ \ \  
-     / / /\ \___/ // / /\ \_\\ \___\    / / // / /\ \_\  / / /\ \ \   ____  / / /\ \___\ / / /\ \ \          / / /\ \___/ // / /\/___  / ____    / / /\ \ \  \ \___\    / / // / /\ \ \      / / /\ \_\  ____    / / /\ \ \     / / /\ \ \   / / /\ \___/ // / /\ \___\ / / /\ \ \   / / /\/_/     / / /\ \_\ 
-    / / /  \/____// /_/_ \/_/ \__  /   / / // / /_/ / / / / /  \ \_\/\____/\\ \ \ \/___// / /  \ \ \        / / /  \/____// / /   / / //\____/\ / / /  \ \_\  \__  /   / / // / /\ \_\ \    / /_/_ \/_//\____/\ / / /  \ \_\   / / /  \ \_\ / / /  \/____/ \ \ \ \/___// / /  \ \_\ / / /         / /_/_ \/_/ 
-   / / /    / / // /____/\    / / /   / / // / /__\/ / / / /   / / /\/____\/ \ \ \     / / /___/ /\ \      / / /    / / // / /   / / / \/____\// / /    \/_/  / / /   / / // / /\ \ \___\  / /____/\   \/____\// / /    \/_/  / / /   / / // / /    / / /   \ \ \     / / /   / / // / /         / /____/\    
-  / / /    / / // /\____\/   / / /   / / // / /_____/ / / /   / / /      _    \ \ \   / / /_____/ /\ \    / / /    / / // / /   / / /         / / /          / / /   / / // / /  \ \ \__/ / /\____\/          / / /          / / /   / / // / /    / / /_    \ \ \   / / /   / / // / / ____    / /\____\/    
- / / /    / / // / /______  / / /___/ / // / /\ \ \  / / /___/ / /      /_/\__/ / /  / /_________/\ \ \  / / /    / / / \ \ \__/ / /         / / /________  / / /___/ / // / /____\_\ \  / / /______         / / /________  / / /___/ / // / /    / / //_/\__/ / /  / / /___/ / // /_/_/ ___/\ / / /______    
-/ / /    / / // / /_______\/ / /____\/ // / /  \ \ \/ / /____\/ /       \ \/___/ /  / / /_       __\ \_\/ / /    / / /   \ \___\/ /         / / /_________\/ / /____\/ // / /__________\/ / /_______\       / / /_________\/ / /____\/ // / /    / / / \ \/___/ /  / / /____\/ //_______/\__\// / /_______\   
-\/_/     \/_/ \/__________/\/_________/ \/_/    \_\/\/_________/         \_____\/   \_\___\     /____/_/\/_/     \/_/     \/_____/          \/____________/\/_________/ \/_____________/\/__________/       \/____________/\/_________/ \/_/     \/_/   \_____\/   \/_________/ \_______\/    \/__________/   
-###
+app = require('express')();
+server = require('http').createServer(app);
+io = require('socket.io').listen(server);
+net = require('net');
 
-express     = require "express"
-app         = module.exports = express.createServer()
+host = 'localhost'
+port = 12345
+connected = false
 
-SERVER_PORT = 80
+if (process.argv.length <= 2)
+   console.log('No server & port specified. The format is node server [\'ip\'] [\'port\'].  Connecting on localhost:12345')
+else 
+   host = process.argv[2]
+   if (process.argv.length>=4)
+      port = process.argv[3]
 
-app.get "/", (req, res) ->
-  res.send "Hello World"
 
-app.listen SERVER_PORT
-console.log "Listening on port #{SERVER_PORT}"
+# connect to Neuro-Sand-Cube on port 12345
+
+nscConnect = (-> 
+           console.log('Attempting to connect to NSC server ...')
+           exports.client = net.connect(port,host,(  -> 
+                                                        console.log('client connected')
+                                                        connected = true))
+           exports.client.on('error',(() ->
+                             console.log('error connecting to Neuro-Sand-Cube server.  Retrying...')
+                             connected = false))
+           exports.client.on('close',( -> 
+                                        console.log('Connection closed.')
+                                        connected = false
+                                        nscConnect()))
+           exports.client.on('timeout', -> nscDisconnect())
+           exports.client.on('end', () ->  
+                                        connected = false
+                                        nscDisconnect()))
+
+nscConnect()
+
+nscDisconnect = ( ->
+					console.log('Disconnected from NSC server...')
+					nscConnect())
+
+
+
+server.listen(8000)
+
+app.get('/',((req, res) ->
+				  		res.sendfile(__dirname + '/index.html')))
+
+
+io.sockets.on('connection', ((socket) ->
+             exports.client.on('data', ((data) ->  
+                                                  socket.emit('nsc',data.toString()))) 
+             setInterval( (() -> socket.emit('connection', { "connected" : connected })) , 5000)
+             socket.on('command', ((data) ->
+                                            console.log(JSON.stringify(data))
+                                            exports.client.write(JSON.stringify(data))))))
+
+	          
