@@ -1,0 +1,3 @@
+[ { "id": "level_restart", "value": 1 , "change_count": 1 }  ,{ "id": "player_x", "value": 512 , "change_count": 1401 }  ,{ "id": "player_y", "value": 512 , "change_count": 1771 }  ,{ "id": "distance_traveled", "value": 0 , "change_count": 1765 } , { "id": "timestamp", "value": "10:19:22.157"  }, { "id": "frame", "value": 789610  } ]
+[ { "id": "distance_traveled", "value": 0.0402832 , "change_count": 1766 } , { "id": "timestamp", "value": "10:19:22.190"  }, { "id": "frame", "value": 789611  } ]
+[ { "id": "distance_traveled", "value": 0.110474 , "change_count": 1767 } , { "id": "timestamp", "value": "10:19:22.223"  }, { "id": "frame", "value": 789612  } ]

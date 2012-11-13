@@ -192,6 +192,9 @@
             }
         });
     });
+	$(function() {
+        $( "button" ).button()
+    });
 	</script>
 	
 	
@@ -232,9 +235,14 @@
 	<input type="submit" value="Send command" />
 	<p><p>
 	<label id="command"> </label>
-	<div style="height:50px"></div>
+	<form action="/log" method="get">
+	<button name="Download Log" type="submit">Log file</button>
+	</form>
+	<div style="height:10px"></div>
 	
 </div>
+
+
 
 </div>
 </body>
