@@ -4,12 +4,19 @@
   <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.0/themes/base/jquery-ui.css" />
   <script src="http://code.jquery.com/jquery-1.8.2.js"></script>
   <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>
+  <script src="flot/jquery.flot.js"></script>
 	
   <style>
     body 
 	{
         font-family: "Calibri";
     }
+	.graph
+	{
+		width:400px;
+		height:200px;
+		margin: auto;
+	}
     #accordion-resizer 
 	{
         padding: 10px;
@@ -76,6 +83,32 @@
 	var consoleLength = 0;
 	
 	var idMap = {};
+	var idList = [];
+	
+	
+	var data = [];
+	var totalPoints = 300;
+	function getRandomData() {
+        if (data.length > 0)
+            data = data.slice(1);
+
+        // do a random walk
+        while (data.length < totalPoints) {
+            var prev = data.length > 0 ? data[data.length - 1] : 50;
+            var y = prev + Math.random() * 10 - 5;
+            if (y < 0)
+                y = 0;
+            if (y > 100)
+                y = 100;
+            data.push(y);
+        }
+
+        // zip the generated y values with the x values
+        var res = [];
+        for (var i = 0; i < data.length; ++i)
+            res.push([i, data[i]])
+        return res;
+    }
 	
 	function present(data)
 	{
@@ -95,11 +128,62 @@
  	    
 	    for(var key in idMap)
 	    {
-	       keys.push(key);  		  
-		   content += "<tr><td>" + key + "</td><td>"+ idMap[key].count + "</td><td>" + idMap[key].time + "</td><td>" + idMap[key].frame + "</td><td>" + idMap[key].value + "</td></tr>";
+	       //keys.push(key);  
+		   var obj = idMap[key].val;
+		   content += "<tr><td>" + key + "</td><td>"+ obj.count + "</td><td>" + obj.time + "</td><td>" + obj.frame + "</td><td>" + obj.value + "</td></tr>";
+
 	   }
   
 	   $("#stats-table tbody").html(content);
+	   
+	   for(var key in idMap)
+	   {
+	       //keys.push(key);  
+		   //key = "player_angle";
+		   var obj = idMap[key].val;
+		   if (idList.indexOf(key) == -1)
+		   {
+				//if (idMap[key].history.length <100) return;
+				idList.push(key);
+				//var plot = $.plot($("#"+key), [ idMap[key].history ], options);
+				var d = [];
+				
+				for (var i = 0; i < idMap[key].history.length; ++i)
+					d.push([i, idMap[key].history[i]])
+					
+				var res = [{ label: key,  data: d}];
+    
+				
+				var newDiv = "<div id=\"" + key + "\" class=\"graph\"> </div>";
+				$("#graphs").append(newDiv);
+				
+				function update(key) {
+				
+					var d = [];
+					for (var i = 0; i < idMap[key].history.length; ++i)
+						d.push([i, idMap[key].history[i]])
+					
+					var res = [{ label: key,  data: d}];
+					idMap[key].plot.setData( res );
+					// since the axes don't change, we don't need to call plot.setupGrid()
+					idMap[key].plot.draw();
+        
+					setTimeout(update, 100,key);
+				}
+				
+				var options = {
+					series: { shadowSize: 0 }, // drawing is faster without shadows
+					yaxis: { min: 0 , max: 1000},
+					xaxis: { show: true, autoscaleMargin: 0.1, max: 300}
+					
+				};
+				
+				var selector = "#" +key;
+				var plot = $.plot($("#graphs > div:last"),  res , options);
+				idMap[key].plot = plot;
+				update(key);			
+		   }	   
+	   }
 	}
 	
 	function process(data)
@@ -126,7 +210,28 @@
 				tmp.value = obj.value;
 	            tmp.time = time;
 	            tmp.frame= frame;
-				idMap[obj.id] = tmp;
+				if (!(obj.id in idMap))
+				{
+					idMap[obj.id] = {};
+					idMap[obj.id].history = new Array();
+					idMap[obj.id].history.push( tmp.value);
+					
+					
+				}
+				
+				if (idMap[obj.id].history.length >= 1)
+				{
+					if (Math.abs(idMap[obj.id].history[idMap[obj.id].history.length-1] - obj.value) > 1)
+					{
+						if (idMap[obj.id].history.length >= totalPoints)
+						{
+							idMap[obj.id].history.shift();
+						}
+						
+						idMap[obj.id].history.push( tmp.value);
+					}
+				}
+				idMap[obj.id].val = tmp;
 			}
 		}
 	}
@@ -138,6 +243,9 @@
 	socket.on('connection', function (data) {
 	   $("#connection").html(data.connected? "Connected" : "Disconnected");
 	});
+	
+
+
     $(function() {
         $( "#accordion" ).accordion({
             heightStyle: "fill"
@@ -195,8 +303,6 @@
 	$(function() {
         $( "button" ).button()
     });
-	</script>
-	
 	
 
 </script>
@@ -206,28 +312,34 @@
 
 <div id="accordion-resizer" class="ui-widget-content">
 	<div id="accordion">
-    <h3>Log</h3>
-    <div id="console">
-        <p>
-        
-        </p>
-    </div>
-    <h3>Stats</h3>
+	<h3>Stats</h3>
     <div id = "stats">
 	    <h4 id = "connection"> Disconnected </h4>
         <p>
         <table id="stats-table"><thead><tr><th>state</th><th>change_count</th><th>time</th><th>frame</th><th>value</th></tr></thead><tbody></tbody></table>
         </p>
     </div>
+	<h3>Graphs</h3>
+    <div id = "graphs">
+	    
+    </div>
+    <h3>Log</h3>
+    <div id="console">
+        <p>
+        
+        </p>
+    </div>
+    
 	</div>
 </div>
  
  <p><p>
  <div class="parent">
 
+
 <div class="ui-widget" id="inputboxes">
 	
-	
+	 
     <label for="id-tags">Id: </label>
     <input id="id-tags" />
 	<label for="target-tags">Target: </label>
@@ -236,8 +348,9 @@
 	<p><p>
 	<label id="command"> </label>
 	<form action="/log" method="get">
-	<button name="Download Log" type="submit">Log file</button>
+	<button name="log" type="submit">Log file</button>
 	</form>
+	
 	<div style="height:10px"></div>
 	
 </div>

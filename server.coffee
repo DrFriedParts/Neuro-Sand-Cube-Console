@@ -52,9 +52,11 @@ server.listen(8000)
 
 app.get('/',((req, res) ->
 				  		res.sendfile(__dirname + '/index.html')))
+						
+app.use(express.static(__dirname + '/public'))
 
 app.get('/log', ((req, res) ->
-                        file = __dirname + logFile
+                        file = __dirname + '/' + logFile
                         filename = path.basename(file);
                         res.attachment(filename)
                         res.setHeader('Content-disposition', 'attachment; filename=' + filename)
