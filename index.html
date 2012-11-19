@@ -145,7 +145,7 @@
   
 	   $("#stats-table tbody").html(content);
 	   
-	   for(var key in idMap)
+	   /*for(var key in idMap)
 	   {
 	       //keys.push(key);  
 		   //key = "player_angle";
@@ -216,7 +216,7 @@
 				idMap[key].plot = plot;
 				update(key);			
 		   }	   
-	   }
+	   }*/
 	}
 	
 	function process(data)
@@ -271,10 +271,6 @@
 					{
 						idMap[obj.id].history.shift();
 					}
-					
-					
-						
-					
 				}
 				idMap[obj.id].val = tmp;
 			}
@@ -289,10 +285,10 @@
 	   $("#connection").html(data.connected? "Connected" : "Disconnected");
 	});
 	
-	$(function() {
+	/*$(function() {
         $( "#sortable" ).sortable();
         $( "#sortable" ).disableSelection();
-    });
+    });*/
 
     $(function() {
         $( "#accordion" ).accordion({
@@ -366,12 +362,6 @@
         <p>
         <table id="stats-table"><thead><tr><th>state</th><th>change_count</th><th>time</th><th>frame</th><th>value</th></tr></thead><tbody></tbody></table>
         </p>
-    </div>
-	<h3>Graphs</h3>
-    <div id = "graph-container">
-	    <ul id = "graphs" class = "sortable">
-    
-</ul>
     </div>
     <h3>Log</h3>
     <div id="console">
