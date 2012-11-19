@@ -26,7 +26,7 @@ nscConnect = (->
            console.log('Attempting to connect to NSC server ...')
            exports.client = net.connect(port,host,(  -> 
                                                         console.log('client connected')
-                                                        fs.writeFile(logFile, '')  # clear out the log file each time a connection is made                                                         
+                                                        fs.writeFileSync(logFile, '')  # clear out the log file each time a connection is made                                                         
                                                         connected = true))
            exports.client.on('error',(() ->
                              console.log('error connecting to Neuro-Sand-Cube server.  Retrying...')
