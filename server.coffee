@@ -27,7 +27,11 @@ nscConnect = (->
            exports.client = net.connect(port,host,(  -> 
                                                         console.log('client connected')
                                                         fs.writeFileSync(logFile, '')  # clear out the log file each time a connection is made                                                         
-                                                        connected = true))
+                                                        connected = true
+                                                        exports.client.on('data', ((data) ->  
+                                                                          fs.appendFile(logFile, data.toString(), ((err) -> 
+                                                                                  if (err) 
+                                                                                      throw err))))))
            exports.client.on('error',(() ->
                              console.log('error connecting to Neuro-Sand-Cube server.  Retrying...')
                              connected = false))
@@ -68,8 +72,7 @@ app.get('/log', ((req, res) ->
 ))
 
 
-exports.client.on('data', ((data) ->  
-                                     fs.appendFile(logFile, data.toString())))
+
 
 io.sockets.on('connection', ((socket) ->
              exports.client.on('data', ((data) ->  
