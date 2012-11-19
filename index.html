@@ -5,6 +5,8 @@
   <script src="http://code.jquery.com/jquery-1.8.2.js"></script>
   <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>
   <script src="flot/jquery.flot.js"></script>
+  <script src="flot/jquery.flot.time.js"></script>
+  
 	
   <style>
     body 
@@ -15,7 +17,7 @@
 	{
 		width:400px;
 		height:200px;
-		margin: auto;
+		//margin: auto;
 	}
     #accordion-resizer 
 	{
@@ -30,7 +32,7 @@
 	{
         text-align: center;
     }
-	#console 
+	#console, #stats-table
 	{
 		font-size: 70%;
 		color: #333333;
@@ -75,6 +77,10 @@
 	   background-color: #ffffff;
 	   padding: 5px;
 	}
+	#graph-container { margin: auto; }
+	.sortable { list-style-type: none; margin: 0; padding: 0;  }
+    .sortable li { margin: 3px 3px 3px 0; padding: 1px; float: left; width: 400px; height: 200px;  text-align: center; }
+    
 
   </style>
   <script src="/socket.io/socket.io.js"></script>
@@ -130,7 +136,10 @@
 	    {
 	       //keys.push(key);  
 		   var obj = idMap[key].val;
-		   content += "<tr><td>" + key + "</td><td>"+ obj.count + "</td><td>" + obj.time + "</td><td>" + obj.frame + "</td><td>" + obj.value + "</td></tr>";
+		   var newDate = new Date();
+		   newDate.setTime(obj.time);
+		   dateString = newDate.toISOString().substring(11,23);
+		   content += "<tr><td>" + key + "</td><td>"+ obj.count + "</td><td>" + dateString + "</td><td>" + obj.frame + "</td><td>" + obj.value + "</td></tr>";
 
 	   }
   
@@ -149,37 +158,61 @@
 				var d = [];
 				
 				for (var i = 0; i < idMap[key].history.length; ++i)
-					d.push([i, idMap[key].history[i]])
+				{
+					var v = idMap[key].history[i][1];
+					var t = idMap[key].history[i][0];
+					d.push([t, v]);
+				}
 					
 				var res = [{ label: key,  data: d}];
     
-				
-				var newDiv = "<div id=\"" + key + "\" class=\"graph\"> </div>";
+			
+				var newDiv = "<li><div id=\"" + key + "\" class=\"graph\"> </div></li>";
 				$("#graphs").append(newDiv);
 				
+				function setup(key)
+				{
+					idMap[key].plot.getAxes().yaxis.ticks = 10;
+					idMap[key].plot.getAxes().xaxis.ticks = 4;
+					idMap[key].plot.setupGrid();
+					setTimeout(setup, 10000, key);
+				}
 				function update(key) {
 				
 					var d = [];
+					var max=-10000;
 					for (var i = 0; i < idMap[key].history.length; ++i)
-						d.push([i, idMap[key].history[i]])
-					
+					{
+						var v = idMap[key].history[i][1];
+						var t = idMap[key].history[i][0];
+						if (v > max)
+							max = v;
+						d.push([t, v]);
+					}
+					idMap[key].plot.getAxes().xaxis.ticks = 2;
+					idMap[key].plot.setupGrid();
 					var res = [{ label: key,  data: d}];
 					idMap[key].plot.setData( res );
+					
+					idMap[key].plot.getOptions().yaxis.max = max;
+					
+					
 					// since the axes don't change, we don't need to call plot.setupGrid()
 					idMap[key].plot.draw();
         
 					setTimeout(update, 100,key);
+					//setup(key);
 				}
 				
 				var options = {
 					series: { shadowSize: 0 }, // drawing is faster without shadows
-					yaxis: { min: 0 , max: 1000},
-					xaxis: { show: true, autoscaleMargin: 0.1, max: 300}
+					yaxis: {},
+					xaxis: { show: true, mode: "time", ticks: 2}
 					
 				};
 				
 				var selector = "#" +key;
-				var plot = $.plot($("#graphs > div:last"),  res , options);
+				var plot = $.plot($("#graphs > li:last > div:last"),  res , options);
 				idMap[key].plot = plot;
 				update(key);			
 		   }	   
@@ -214,22 +247,34 @@
 				{
 					idMap[obj.id] = {};
 					idMap[obj.id].history = new Array();
-					idMap[obj.id].history.push( tmp.value);
+					idMap[obj.id].history.push( [tmp.time,tmp.value]);
 					
 					
 				}
 				
 				if (idMap[obj.id].history.length >= 1)
 				{
-					if (Math.abs(idMap[obj.id].history[idMap[obj.id].history.length-1] - obj.value) > 1)
+					var prev = idMap[obj.id].history[idMap[obj.id].history.length-1][1];
+					
+					
+					if (obj.id == "correct_trial" || obj.id == "incorrect_trial" || obj.id == "trial_start" || obj.id == "player_left_click" || obj.id == "player_right_click" 
+						|| obj.id == "reward_issued" || obj.id == "teleport" || obj.id == "level_restart")
 					{
-						if (idMap[obj.id].history.length >= totalPoints)
-						{
-							idMap[obj.id].history.shift();
-						}
+						idMap[obj.id].history.push( [tmp.time,0]);
+						idMap[obj.id].history.push( [tmp.time,1]);
+						idMap[obj.id].history.push( [tmp.time,0]);
 						
-						idMap[obj.id].history.push( tmp.value);
 					}
+					else if (Math.abs(prev - obj.value) >= 1)
+						idMap[obj.id].history.push( [tmp.time,tmp.value]);
+					while (idMap[obj.id].history.length >= totalPoints)
+					{
+						idMap[obj.id].history.shift();
+					}
+					
+					
+						
+					
 				}
 				idMap[obj.id].val = tmp;
 			}
@@ -244,7 +289,10 @@
 	   $("#connection").html(data.connected? "Connected" : "Disconnected");
 	});
 	
-
+	$(function() {
+        $( "#sortable" ).sortable();
+        $( "#sortable" ).disableSelection();
+    });
 
     $(function() {
         $( "#accordion" ).accordion({
@@ -320,8 +368,10 @@
         </p>
     </div>
 	<h3>Graphs</h3>
-    <div id = "graphs">
-	    
+    <div id = "graph-container">
+	    <ul id = "graphs" class = "sortable">
+    
+</ul>
     </div>
     <h3>Log</h3>
     <div id="console">
@@ -329,7 +379,7 @@
         
         </p>
     </div>
-    
+	
 	</div>
 </div>
  
