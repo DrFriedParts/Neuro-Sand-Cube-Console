@@ -6,277 +6,22 @@
   <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>
   <script src="flot/jquery.flot.js"></script>
   <script src="flot/jquery.flot.time.js"></script>
-  
-	
-  <style>
-    body 
-	{
-        font-family: "Calibri";
-    }
-	.graph
-	{
-		width:400px;
-		height:200px;
-		//margin: auto;
-	}
-    #accordion-resizer 
-	{
-        padding: 10px;
-	    height : 80%;
-    }
-    #accordion 
-	{
-        height: 500px;
-    }
-    h3, h4 
-	{
-        text-align: center;
-    }
-	#console, #stats-table
-	{
-		font-size: 70%;
-		color: #333333;
-	    text-align: center;
-	}
-	
-	#command 
-	{
-		font-size: 70%;
-		color: #0000A0;
-	}
-		
-	.parent 
-	{
-		position:fixed;
-		bottom:0px;
-		width:100%; //width should be 100%	
-	} 
-	#inputboxes
-	{
-		margin-left:auto;
-		margin-right:auto;
-		width: 730x;
-		text-align: center;
-	}
-
-	table
-	{
-	    border: 2px solid black;
-        margin: auto;
-	}
-	th 
-	{
-	   border: 1px solid black;
-	   background-color: #E7E7E7;
-	   padding: 5px;
-	   width: 20%;
-	}
-	td 
-	{
-	   border: 1px solid black;
-	   background-color: #ffffff;
-	   padding: 5px;
-	}
-	#graph-container { margin: auto; }
-	.sortable { list-style-type: none; margin: 0; padding: 0;  }
-    .sortable li { margin: 3px 3px 3px 0; padding: 1px; float: left; width: 400px; height: 200px;  text-align: center; }
-    
-
-  </style>
   <script src="/socket.io/socket.io.js"></script>
-  <script>
-	var consoleBuffer = new Array(30);
-	var consoleLength = 0;
-	
-	var idMap = {};
-	var idList = [];
-	
-	
-	var data = [];
-	var totalPoints = 300;
-	
-	function present(data)
-	{
-		if (consoleLength >= 29)
-		{
-			consoleBuffer.shift();
-		}
-		else
-		{
-			++consoleLength;
-		}
-		consoleBuffer.push(data + "<br/>");
-		$('#console').html(consoleBuffer); //.match(/.*\]/g).join
-	
-    	var content = ""; // could dynamically update only rows in the table, but its probably just as fast to regenerate
-		var keys = [];
- 	    
-	    for(var key in idMap)
-	    {
-	       //keys.push(key);  
-		   var obj = idMap[key].val;
-		   var newDate = new Date();
-		   newDate.setTime(obj.time);
-		   dateString = newDate.toISOString().substring(11,23);
-		   content += "<tr><td>" + key + "</td><td>"+ obj.count + "</td><td>" + dateString + "</td><td>" + obj.frame + "</td><td>" + obj.value + "</td></tr>";
-
-	   }
+  <script src="nsc.js"></script>
+  <link rel="stylesheet" type="text/css" href="nsc.css">
   
-	   $("#stats-table tbody").html(content);
-	   
-	   for(var key in idMap)
-	   {
-	       //keys.push(key);  
-		   //key = "player_angle";
-		   var obj = idMap[key].val;
-		   if (idList.indexOf(key) == -1)
-		   {
-				//if (idMap[key].history.length <100) return;
-				idList.push(key);
-				//var plot = $.plot($("#"+key), [ idMap[key].history ], options);
-				var d = [];
-				
-				for (var i = 0; i < idMap[key].history.length; ++i)
-				{
-					var v = idMap[key].history[i][1];
-					var t = idMap[key].history[i][0];
-					d.push([t, v]);
-				}
-					
-				var res = [{ label: key,  data: d}];
-    
-			
-				var newDiv = "<li><div id=\"" + key + "\" class=\"graph\"> </div></li>";
-				$("#graphs").append(newDiv);
-				
-				function setup(key)
-				{
-					idMap[key].plot.getAxes().yaxis.ticks = 10;
-					idMap[key].plot.getAxes().xaxis.ticks = 4;
-					idMap[key].plot.setupGrid();
-					setTimeout(setup, 10000, key);
-				}
-				function update(key) {
-				
-					var d = [];
-					var max=-10000;
-					for (var i = 0; i < idMap[key].history.length; ++i)
-					{
-						var v = idMap[key].history[i][1];
-						var t = idMap[key].history[i][0];
-						if (v > max)
-							max = v;
-						d.push([t, v]);
-					}
-					idMap[key].plot.getAxes().xaxis.ticks = 2;
-					idMap[key].plot.setupGrid();
-					var res = [{ label: key,  data: d}];
-					idMap[key].plot.setData( res );
-					
-					idMap[key].plot.getOptions().yaxis.max = max;
-					
-					
-					// since the axes don't change, we don't need to call plot.setupGrid()
-					idMap[key].plot.draw();
-        
-					setTimeout(update, 100,key);
-					//setup(key);
-				}
-				
-				var options = {
-					series: { shadowSize: 0 }, // drawing is faster without shadows
-					yaxis: {},
-					xaxis: { show: true, mode: "time", ticks: 2}
-					
-				};
-				
-				var selector = "#" +key;
-				var plot = $.plot($("#graphs > li:last > div:last"),  res , options);
-				idMap[key].plot = plot;
-				update(key);			
-		   }	   
-	   }
-	}
-	
-	function process(data)
-	{
-		var objList = JSON.parse(data);
-		var frame;
-		var time;
-		for (var i=objList.length -1; i >= 0; --i)
-		{
-			obj = objList[i];
-			if (obj.id == "timestamp")
-			{
-				time = obj.value;
-			}
-			else if (obj.id == "frame")
-			{
-				frame = obj.value;
-			}
-			else
-			{
-				tmp = {};//idMap[obj.id];
-				tmp.id = obj.id;
-				tmp.count = obj.change_count;
-				tmp.value = obj.value;
-	            tmp.time = time;
-	            tmp.frame= frame;
-				if (!(obj.id in idMap))
-				{
-					idMap[obj.id] = {};
-					idMap[obj.id].history = new Array();
-					idMap[obj.id].history.push( [tmp.time,tmp.value]);
-					
-					
-				}
-				
-				if (idMap[obj.id].history.length >= 1)
-				{
-					var prev = idMap[obj.id].history[idMap[obj.id].history.length-1][1];
-					
-					
-					if (obj.id == "correct_trial" || obj.id == "incorrect_trial" || obj.id == "trial_start" || obj.id == "player_left_click" || obj.id == "player_right_click" 
-						|| obj.id == "reward_issued" || obj.id == "teleport" || obj.id == "level_restart")
-					{
-						idMap[obj.id].history.push( [tmp.time,0]);
-						idMap[obj.id].history.push( [tmp.time,1]);
-						idMap[obj.id].history.push( [tmp.time,0]);
-						
-					}
-					else if (Math.abs(prev - obj.value) >= 1)
-						idMap[obj.id].history.push( [tmp.time,tmp.value]);
-					while (idMap[obj.id].history.length >= totalPoints)
-					{
-						idMap[obj.id].history.shift();
-					}
-				}
-				idMap[obj.id].val = tmp;
-			}
-		}
-	}
-	var socket = io.connect(document.location.href);
-		socket.on('nsc', function (data) {
-			process(data);
-			present(data);		
-	});
-	socket.on('connection', function (data) {
-	   $("#connection").html(data.connected? "Connected" : "Disconnected");
-	});
+  <script>
 	
 	$(function() {
+	
         $( "#sortable" ).sortable();
         $( "#sortable" ).disableSelection();
-    });
-
-    $(function() {
-        $( "#accordion" ).accordion({
-            heightStyle: "fill"
-        });
+    
 		var availableIdTags = [
             "restart_map",
 			"reset_counter",
-			"flush_water_reward"
+			"flush_water_reward",
+			"issue_reward"
         ];
 		var availableTargetTags = [
             "level_restart",
@@ -284,7 +29,13 @@
 			"player_y",
 			"player_left_click",
 			"player_right_click",
-			"teleport"
+			"teleport",
+			"player_angle",
+			"distance_traveled",
+			"trial_start",
+			"correct_trial",
+			"incorrect_trial",
+			"reward_issued"
         ];
         $( "#id-tags" ).autocomplete({
             source: availableIdTags
@@ -292,6 +43,7 @@
 					var obj = { id: $("#id-tags").val(), target: $("#target-tags").val() };
 					$("#command").text(JSON.stringify(obj));
 				}, 50);});
+				
 		$( "#target-tags" ).autocomplete({
             source: availableTargetTags
         });
@@ -302,7 +54,6 @@
 			}, 100);
 		
 	
-		$(function() {
         $( "input[type=submit]" )
             .button()
             .click(function( event ) {
@@ -312,9 +63,10 @@
 				socket.emit('command', obj);
 	            
             });
-    });
-    });
-    $(function() {
+		
+		$( "#accordion" ).accordion({
+            heightStyle: "fill"
+        });
         $( "#accordion-resizer" ).resizable({
             minHeight: 800,
             minWidth: 200,
@@ -322,66 +74,51 @@
                 $( "#accordion" ).accordion( "refresh" );
             }
         });
-    });
-	$(function() {
-        $( "button" ).button()
+
+	
+        $( "button" ).button();
     });
 	
-
-</script>
+  </script>
 </head>
 <body>
 <h3> Neuro-Sand-Cube-Console </h3>
 
 <div id="accordion-resizer" class="ui-widget-content">
 	<div id="accordion">
-	<h3>Stats</h3>
-    <div id = "stats">
-	    <h4 id = "connection"> Disconnected </h4>
-        <p>
-        <table id="stats-table"><thead><tr><th>state</th><th>change_count</th><th>time</th><th>frame</th><th>value</th></tr></thead><tbody></tbody></table>
-        </p>
-    </div>
-	<h3>Graphs</h3>
-    <div id = "graph-container">
-	    <ul id = "graphs" class = "sortable">
-    
-</ul>
-    </div>
-    <h3>Log</h3>
-    <div id="console">
-        <p>
-        
-        </p>
-    </div>
-	
+		<h3>Stats</h3>
+		<div id = "stats">
+			<h4 id = "connection"> Disconnected </h4>
+			<p>
+			<table id="stats-table"><thead><tr><th>state</th><th>change_count</th><th>time</th><th>frame</th><th>value</th></tr></thead><tbody></tbody></table>
+			</p>
+		</div>
+		<h3>Graphs</h3>
+		<div id = "graph-container">
+			<ul id = "graphs" class = "sortable"></ul>
+		</div>
+		<h3>Log</h3>
+		<div id="console">
+			<p/>
+		</div>
 	</div>
 </div>
  
  <p><p>
- <div class="parent">
-
-
-<div class="ui-widget" id="inputboxes">
-	
-	 
-    <label for="id-tags">Id: </label>
-    <input id="id-tags" />
-	<label for="target-tags">Target: </label>
-    <input id="target-tags" />
-	<input type="submit" value="Send command" />
-	<p><p>
-	<label id="command"> </label>
-	<form action="/log" method="get">
-	<button name="log" type="submit">Log file</button>
-	</form>
-	
-	<div style="height:10px"></div>
-	
-</div>
-
-
-
+<div class="parent">
+	<div class="ui-widget" id="inputboxes">
+		<label for="id-tags">Id: </label>
+		<input id="id-tags" />
+		<label for="target-tags">Target: </label>
+		<input id="target-tags" />
+		<input type="submit" value="Send command" />
+		<p><p>
+		<label id="command"> </label>
+		<form action="/log" method="get">
+		<button name="log" type="submit">Log file</button>
+		</form>
+		<div style="height:10px"></div>
+	</div>
 </div>
 </body>
 </html>
