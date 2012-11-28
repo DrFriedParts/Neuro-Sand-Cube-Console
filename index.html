@@ -16,6 +16,7 @@
 	
         $( "#sortable" ).sortable();
         $( "#sortable" ).disableSelection();
+		$("#stats-table").hide();
     
 		var availableIdTags = [
             "restart_map",
@@ -67,45 +68,71 @@
 		$( "#accordion" ).accordion({
             heightStyle: "fill"
         });
-        $( "#accordion-resizer" ).resizable({
-            minHeight: 800,
-            minWidth: 200,
-            resize: function() {
-                $( "#accordion" ).accordion( "refresh" );
-            }
-        });
+		
+		
 
-	
         $( "button" ).button();
+		$( "#tabs").tabs( { heightStyle: "content" });
     });
 	
   </script>
 </head>
 <body>
 <h3> Neuro-Sand-Cube-Console </h3>
+<h4 id = "connection"> Disconnected </h4>
+
 
 <div id="accordion-resizer" class="ui-widget-content">
-	<div id="accordion">
-		<h3>Stats</h3>
-		<div id = "stats">
-			<h4 id = "connection"> Disconnected </h4>
-			<p>
-			<table id="stats-table"><thead><tr><th>state</th><th>change_count</th><th>time</th><th>frame</th><th>value</th></tr></thead><tbody></tbody></table>
-			</p>
-		</div>
-		<h3>Graphs</h3>
-		<div id = "graph-container">
-			<ul id = "graphs" class = "sortable"></ul>
-		</div>
-		<h3>Log</h3>
-		<div id="console">
-			<p/>
-		</div>
+	<div id="tabs">
+	<ul>
+		<li><a href="#tabs-1">Stats</a></li>
+        
+		<li><a href="#tabs-3">Log</a></li>
+     
+    </ul>
+	<div id ="tabs-1">
+	
+	
+	<table id="stats-map-table">
+	<tr>
+	<td width="600px">
+	<span id = "stats">
+		<table id="stats-table"><thead><tr><th>state</th><th>change_count</th><th>time</th><th>frame</th><th>value</th></tr></thead><tbody></tbody></table>
+	</span>
+	</td>
+	<td width="400px">
+	<span >
+		<svg xmlns="http://www.w3.org/2000/svg"	xmlns:xlink="http://www.w3.org/1999/xlink" width="300" height = "300" id ="map-container">
+		<g transform="scale(0.75)">
+			<rect  x="130" y="0" width="40" height="300" />
+			<rect  x="25" y="0" width="250" height="40" />
+			
+			<image id="mouseSVG" x="130" y="130" width="30" height="30" xlink:href="lab-mouse.svg" />
+			
+		</g>
+		</svg>
+	</span>
+	
+	</td></tr></table>
+	
+	<p>
+	
+	<div id = "graph-container">
+		<div id = "graphs"></div>
+	</div>
+
+	</div>
+	
+	<div id = "tabs-3">
+	<div id="console">
+		<p/>
+	</div>
+	</div>
 	</div>
 </div>
  
  <p><p>
-<div class="parent">
+<div >
 	<div class="ui-widget" id="inputboxes">
 		<label for="id-tags">Id: </label>
 		<input id="id-tags" />

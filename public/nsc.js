@@ -31,8 +31,9 @@ function presentStats(data)
 	   var newDate = new Date();
 	   newDate.setTime(obj.time);
 	   dateString = newDate.toISOString().substring(11,23);
-	   content += "<tr><td>" + key + "</td><td>"+ obj.count + "</td><td>" + dateString + "</td><td>" + obj.frame + "</td><td>" + obj.value + "</td></tr>";
+	   content += "<tr><td class=\"td\">" + key + "</td><td class=\"td\">"+ obj.count + "</td><td class=\"td\">" + dateString + "</td><td class=\"td\">" + obj.frame + "</td><td class=\"td\">" + obj.value + "</td></tr>";
    }
+   $("#stats-table").show();
    $("#stats-table tbody").html(content);
    
 }
@@ -54,7 +55,7 @@ function presentGraphs(data)
 			}
 			var res = [{ label: key,  data: d}];
 
-			var newGraph = "<li><div id=\"" + key + "\" class=\"graph\"> </div></li>";
+			var newGraph = "<div id=\"" + key + "\" class=\"graph\"> </div>";
 			
 			$("#graphs").append(newGraph);
 			
@@ -96,11 +97,30 @@ function presentGraphs(data)
 				
 			};
 			
-			var plot = $.plot($("#graphs > li:last > div:last"),  res , options); // select the last added li - this is the newly added graph
+			var plot = $.plot($("#graphs > div:last"),  res , options); // select the last added li - this is the newly added graph
+			$( "#tabs").tabs("refresh");
 			idMap[key].plot = plot;
 			update(key);			
 	   }	   
    }
+}
+
+function presentMap(data)
+{
+	if ("player_x" in idMap)
+	{
+		var lastIndex = idMap["player_x"].history.length-1;
+		var prevX = idMap["player_x"].history[lastIndex][1];
+		prevX = (prevX -450)/2;
+		lastIndex = idMap["player_y"].history.length-1;
+		var prevY = idMap["player_y"].history[lastIndex][1];
+		prevY = 300 - (prevY - 280)/2 - 35;
+		lastIndex = idMap["player_angle"].history.length-1;
+		var prevAngle = idMap["player_angle"].history[lastIndex][1];
+		document.getElementById("mouseSVG").setAttribute('x', prevY);
+		document.getElementById("mouseSVG").setAttribute('y', prevX);
+		document.getElementById("mouseSVG").setAttribute("transform", "rotate(" + (90+prevAngle) + " " + (prevY+15) + " " + (prevX+15) +")");
+	}
 }
 
 function present(data)
@@ -109,6 +129,7 @@ function present(data)
 	presentConsole(data);
 	presentStats(data);
     presentGraphs(data);
+	presentMap(data);
 }
 
 function process(data)
