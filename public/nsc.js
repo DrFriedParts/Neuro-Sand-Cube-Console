@@ -1,3 +1,169 @@
+var consoleActive=false;
+
+// jquery init code
+function InitTrialSetup()
+{
+
+    $("#trial_name").val("");
+    $("#animal_number").val("");
+    $("#trial_length").val("30");
+
+    var newDate = new Date();
+    //newDate.setTime(obj.time);
+    var dateString = newDate.toISOString().substring(0,10);
+    var timeString = newDate.toISOString().substring(11,16);
+    $("#trial_date").val(dateString);
+    $("#trial_time").val(timeString);
+}
+
+function StartTrial()
+{
+    // check if data is clean
+    // for now just check trial length
+    var trialLength = parseInt($("#trial_length").val());
+    if (isNaN(trialLength) || trialLength < 1)
+    {
+	$("#errors").html("Please insert a valid trial length.");
+	return false;
+    }
+    /*$("#trial_setup").hide();
+    $("#trial_info_container").show();
+
+    var obj = {};
+    obj.trial_name = $("#trial_name").val();
+    obj.animal_number = $("#animal_number").val();
+    obj.trial_length = $("#trial_length").val();
+    obj.trial_date = $("#trial_date").val();
+    obj.trial_time = $("#trial_time").val();
+
+    socket.emit('trial', obj);  */
+    
+    
+
+}
+
+function InitTrial()
+{
+    InitTrialSetup();
+    $("#defaults_button").click(function() { InitTrialSetup(); } );
+    //$("#start_trial_button").click(function() { StartTrial(); } );
+    consoleActive=false;
+}
+
+function requestLogs()
+{
+    socket.emit('logs_request', {});
+    socket.on('logs', function(data)
+    {
+	createLogList(data);
+
+    });
+}
+
+function createLogList(logs)
+{
+    for (var log in logs)
+    {
+	var html = '<a href="' + getBaseURL() + 'log/' + log.toString() + '">' + logs[log] + '</a><br/>';
+	$("#log_list").append(html);
+    }
+
+}
+
+function InitLogs()
+{
+    consoleActive=false;
+    requestLogs();
+}
+
+function InitConsole()
+{
+    consoleActive=true;
+    $("#sortable").sortable();
+    $("#sortable").disableSelection();
+    $("#stats-table").hide();
+    
+    var availableIdTags = [
+			   "restart_map",
+			   "reset_counter",
+			   "flush_water_reward",
+			   "issue_reward"
+			   ];
+    var availableTargetTags = [
+			       "level_restart",
+			       "player_x",
+			       "player_y",
+			       "player_left_click",
+			       "player_right_click",
+			       "teleport",
+			       "player_angle",
+			       "distance_traveled",
+			       "trial_start",
+			       "correct_trial",
+			       "incorrect_trial",
+			       "reward_issued"
+			       ];
+    $("#id-tags").autocomplete(
+    {
+	source: availableIdTags
+    }, function() 
+    {
+	setTimeout(function() 
+		   {
+		       var obj = { 
+			   id: $("#id-tags").val(), target: $("#target-tags").val() 
+		       };
+		       $("#command").text(JSON.stringify(obj));
+		   }, 50);});			
+    $("#target-tags").autocomplete(
+				   {
+				       source: availableTargetTags
+					   });
+    setInterval(function() 
+		{ 
+		    var obj = { id: $("#id-tags").val(), target: $("#target-tags").val() };
+		    $("#command").text(JSON.stringify(obj));
+		}, 100);
+		
+	
+    $("input[type=submit]").button().click(function( event ) 
+					   {
+					       event.preventDefault();
+					       var obj = { id: $("#id-tags").val(), target: $("#target-tags").val() };
+					       $("#command").text(JSON.stringify(obj));
+					       socket.emit('command', obj);         
+					   });
+		
+    $("#accordion").accordion(
+			      {
+				  heightStyle: "fill"
+				      });
+    //$("button").button();
+    $("#tabs").tabs( { heightStyle: "content" });
+
+    $("#stop_trial_button").click(function()
+    {
+	trial_time = -1;
+	trial_active = false;
+	socket.emit('stop_trial', {});
+    });
+
+    socket.emit('trial_progress_request', {});
+}
+
+function InitCommon()
+{
+    $("input[type=submit]").button();
+    $("button").button();
+}
+
+$(function() {
+	InitCommon();	
+});
+	
+
+
+
 var consoleBuffer = new Array(30);
 var consoleLength = 0;
 
@@ -191,15 +357,83 @@ function process(data)
 	}
 }
 
+function getBaseURL () {
+   return location.protocol + "//" + location.hostname + 
+      (location.port && ":" + location.port) + "/";
+}
 // streamed data from server
-var socket = io.connect(document.location.href);
+var url = getBaseURL();
+var socket = io.connect(url);
 	socket.on('nsc', function (data) {
-		process(data);
-		present(data);		
+		if (consoleActive)
+		{
+		    process(data);
+		    present(data);		
+		}
+});
+
+socket.on('trial_progress', function (data)
+{
+    if (consoleActive)
+    {
+	trial_active = data.trial_active;
+	if (data.trial_active)
+        {
+	    setTrialTimer(data.trial_time);
+	}
+    }
 });
 
 // message from server indicating a connection with the VR
 socket.on('connection', function (data) {
    $("#connection").html(data.connected? "Connected" : "Disconnected");
 });
+
+var trial_timer = null;
+var trial_active = false;
+var trial_time = null;  //ms to go
+var trial_timer_interval = 1000;
+
+function setTrialTimer(ms)
+{
+    trial_time = ms;
+    if (trial_timer == null)
+    {
+	trial_timer = setTimeout(trialTimer, trial_timer_interval);
+    }
+    displayTrialProgress();
+}
+
+function trialTimer()
+{
+
+    trial_time -= trial_timer_interval;
+    if (trial_time < 0)
+	trial_time = 0;
+    if (trial_active)
+    {
+	trial_timer = setTimeout(trialTimer, trial_timer_interval);
+    }    
+    else
+    {
+	clearTimeout(trial_timer);
+	trial_timer = null;
+    }
+    displayTrialProgress();
+}
+
+function displayTrialProgress()
+{
+
+    var minutes =  Math.floor(trial_time/(60*1000));
+    var seconds = Math.floor((trial_time % (60*1000)/1000));
+    //minutes = minutes.toFixed(2);
+    secondsStr = seconds.toString();
+    if (secondsStr.length == 1)
+	secondsStr = '0' + secondsStr;
+    $("#trial_time").html(minutes.toString() + ":" + secondsStr);
+    $("#trial_active").html("Trial in progress: " + trial_active.toString());
+    if (!trial_active)
+	$("#trial_time").html("0:00");
+}
 

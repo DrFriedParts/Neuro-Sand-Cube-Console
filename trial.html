@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.0/themes/base/jquery-ui.css" />
+  <script src="http://code.jquery.com/jquery-1.8.2.js"></script>
+  <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="nsc.js"></script>
+  <link rel="stylesheet" type="text/css" href="nsc.css">
+  <script>
+    $(function()
+    {
+       InitTrial();
+    });
+  </script>
+</head>
+<body>
+<div id="header">
+  <h3> Neuro-Sand-Cube-Console </h3>
+  <h4 id = "connection"> &nbsp  </h4>
+  <form action="/" method="get">
+    <button type="submit">Home</button>
+  </form>
+</div>
+<p/>
+<div id="trial_setup">
+  <form action="/console" method="post" onsubmit()="return StartTrial()">
+    <label for="trial_name">Trial name: &nbsp; </label>
+    <input id="trial_name" name="trial_name" />
+    <br/>
+    <label for="animal_number">Animal number: &nbsp; </label>
+    <input id="animal_number" name="animal_number" />
+    <br/>
+    <label for="trial_length"> Trial length: &nbsp; </label>
+    <input id="trial_length" name="trial_length" />
+    <br/>
+    <label for="trial_date">Date: &nbsp; </label>
+    <input id="trial_date" name="trial_date" />
+    <br/>
+    <label for="trial_time">Time: &nbsp; </label>
+    <input id="trial_time" name="trial_time" />
+    <span id="errors">&nbsp;</span>
+    <br/><br/><br/>
+    <button id="defaults_button" value="Defaults" type="button">Defaults</button>
+    <input id="start_trial_button" type="submit" value="Start trial" />
+  </form>
+  <br/><br/><br/>
+  <form action="/log" method="get">
+    <button name="log" type="submit">Browse log files</button>
+  </form>
+</div>
+</body>
+</html>
