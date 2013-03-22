@@ -6,7 +6,7 @@ net = require('net');
 fs = require('fs');
 path = require('path');
 spawn = require('child_process').spawn;
-zip = new require('node-zip')()
+#zip = new require('node-zip')()
 
 
 # trial data
