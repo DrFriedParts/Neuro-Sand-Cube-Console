@@ -6,26 +6,30 @@
   <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="nsc.js"></script>
-  <link rel="stylesheet" type="text/css" href="nsc.css">  
+  <link rel="stylesheet" type="text/css" href="nsc.css">
+  <script>
+    $(function()
+    {
+       InitLogs();
+    });
+  </script>
 </head>
 <body>
 <div id="header">
   <h3> Neuro-Sand-Cube-Console </h3>
-  <h4 id = "connection"> &nbsp  </h4>
+  <h4 id = "connection"> &nbsp </h4>
   <form action="/" method="get">
     <button type="submit">Home</button>
   </form>
 </div>
 <p/>
-<div id="dashboard">
- <form action="/trial" method="post">
-   <button name="new_trial" type="submit">New Trial</button>
- </form>
- <form action="/console" method="post">
-   <button name="console" type="submit">Console</button>
- </form>
- <form action="/logs" method="post">
-   <button name="logs" type="submit">Browse log files</button>
+<div id="logs">
+  <div id="log_list">
+
+  </div>
+  <br/>
+  <!--<form action="/log/-1" method="get">
+   <button name="log" type="submit">Download all</button> -->
  </form>
 </div>
 </body>

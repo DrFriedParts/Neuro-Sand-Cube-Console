@@ -1,0 +1,129 @@
+body 
+{
+	font-family: "Calibri";
+}
+
+#header
+{
+    border:5px solid;
+    border-radius:10px;
+    -moz-border-radius:10px; /* Old Firefox */
+    text-align: center;
+}
+
+#accordion-resizer 
+{
+	padding: 10px;
+	height : 80%;
+}
+#accordion, #tabs
+{
+	//height: 500px;
+}
+
+h3, h4, h5
+{
+	text-align: center;
+}
+
+#console, #stats-table
+{
+	font-size: 70%;
+	color: #333333;
+	text-align: center;
+}
+
+#command 
+{
+	font-size: 70%;
+	color: #0000A0;
+}
+	
+.parent 
+{
+	//position:fixed;
+	
+	//bottom:0px;
+	width:100%; //width should be 100%	
+} 
+#inputboxes
+{
+	margin-left:auto;
+	margin-right:auto;
+	width: 730px;
+	text-align: center;
+}
+
+#stats-map-table
+{
+
+
+}
+
+#stats-table
+{
+	border: 2px solid black;
+	//margin-right: auto;
+	list-style-type: none; margin: 0;
+	//float: left;
+}
+th 
+{
+   border: 1px solid black;
+   background-color: #E7E7E7;
+   padding: 5px;
+   width: 20%;
+}
+.td 
+{
+   border: 1px solid black;
+   background-color: #ffffff;
+   padding: 5px;
+}
+
+.graph
+{
+	width:400px;
+	height:200px;
+	display:inline-block
+}
+
+#graph 
+{
+	 width:1000px;
+}
+
+#graph-container {  margin: 0; padding: 0;  }
+#map-container  { float:right}
+.sortable { list-style-type: none; margin: 0; padding: 0;  }
+.sortable li { margin: 3px 3px 3px 0; padding: 1px; float: left; width: 400px; height: 200px;  text-align: center; }
+
+#trial_setup
+{
+    width: 650px;
+}
+#trial_setup label
+{
+    display: inline-block;
+    float: left;
+    clear: left;
+    width: 250px;
+    text-align: right;
+}
+
+#trial_setup input 
+{
+    display: inline-block;
+    float: left;
+}
+
+#trial_setup [type=submit], #defaults_button
+{
+    float: right;
+
+}
+
+#dashboard, #logs
+{
+    text-align: center;
+}

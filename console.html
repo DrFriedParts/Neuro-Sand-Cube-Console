@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.0/themes/base/jquery-ui.css" />
+  <script src="http://code.jquery.com/jquery-1.8.2.js"></script>
+  <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>
+  <script src="flot/jquery.flot.js"></script>
+  <script src="flot/jquery.flot.time.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="nsc.js"></script>
+  <link rel="stylesheet" type="text/css" href="nsc.css">
+  <script>
+    $(function()
+    {
+       InitConsole();
+    });
+  </script>
+  
+  
+</head>
+<body>
+<div id="header">
+  <h3> Neuro-Sand-Cube-Console </h3>
+  <h4 id = "connection"> &nbsp  </h4>
+  <form action="/" method="get">
+    <button type="submit">Home</button>
+  </form>
+</div>
+<p/>
+<div id="console_container">
+  <div id="trial_info">
+    <h4>
+    <label id="trial_active">Trial in progress: false</label>
+    </h4>
+    <h5>
+    <label id="trial_time">0:00</label>
+    </h5>
+  </div>
+  <div id="accordion-resizer" class="ui-widget-content">
+    <div id="tabs">
+      <ul>
+	<li><a href="#tabs-1">Stats</a></li>
+	<li><a href="#tabs-3">Log</a></li>
+      </ul>
+      <div id ="tabs-1">
+	<table id="stats-map-table">
+	  <tr>
+	    <td width="600px">
+	      <span id = "stats">
+		<table id="stats-table"><thead><tr><th>state</th><th>change_count</th><th>time</th><th>frame</th><th>value</th></tr></thead><tbody></tbody></table>
+	      </span>
+	    </td>
+	    <td width="400px">
+	      <span >
+		<svg xmlns="http://www.w3.org/2000/svg"	xmlns:xlink="http://www.w3.org/1999/xlink" width="300" height = "300" id ="map-container">
+		  <g transform="scale(0.75)">
+		    <rect  x="130" y="0" width="40" height="300" />
+		    <rect  x="25" y="0" width="250" height="40" />	
+		    <image id="mouseSVG" x="130" y="130" width="30" height="30" xlink:href="lab-mouse.svg" />	
+		  </g>
+		</svg>
+	      </span>
+	</td></tr></table>
+	<p>
+	<div id = "graph-container">
+	  <div id = "graphs"></div>
+	</div>
+      </div>
+      <div id = "tabs-3">
+	<div id="console">
+	  <p/>
+	</div>
+      </div>
+    </div>
+  </div>
+  <p><p>
+  <div >
+    <div class="ui-widget" id="inputboxes">
+      <label for="id-tags">Id: </label>
+      <input id="id-tags" />
+      <label for="target-tags">Target: </label>
+      <input id="target-tags" />
+      <input type="submit" value="Send command" />
+      <p><p>
+      <label id="command"> </label>
+      <p/>
+      <button id="stop_trial_button">Stop Trial</button>
+      <div style="height:10px"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
